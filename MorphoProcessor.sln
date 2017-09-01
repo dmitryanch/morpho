@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utils", "Utils\Utils.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contextual", "Search\Contextual\Contextual.csproj", "{793E490F-BD0F-42C3-8C6C-45D94156B307}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EN", "EN\EN.csproj", "{E7E957F3-7B27-4DAE-81ED-CBF2E29F0207}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EN", "Language\EN\EN.csproj", "{E7E957F3-7B27-4DAE-81ED-CBF2E29F0207}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
