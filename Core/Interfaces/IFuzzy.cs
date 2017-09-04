@@ -8,7 +8,7 @@ namespace Core.Interfaces
 {
 	public interface IFuzzy
 	{
-		void InitFuzzy(IStrict strictEngine, ILanguageDataProvider langDataProvider, (int EditDistance, bool Translite, bool ConvertByKeycodes) settings);
+		void InitFuzzy(IStrict strictEngine, ILanguageDataProvider langDataProvider, (int EditDistance, bool Translite, bool ConvertByKeycodes, bool UseShortAlphabet) settings);
 		string[] GetCorrections(string key);
 		(string Correction, (IMorphoSigns[] Signs, string Lemma)[] Info)[] Get(string key);
 		//(string Correction, (IMorphoSigns[] Signs, string Lemma)[] Info)[] Get((char c, int interval)[] key);

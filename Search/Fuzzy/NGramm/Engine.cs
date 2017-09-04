@@ -34,7 +34,7 @@ namespace Fuzzy.NGramm
 			throw new NotImplementedException();
 		}
 
-		public void InitFuzzy(IStrict strictEngine, ILanguageDataProvider langDataProvider, (int EditDistance, bool Translite, bool ConvertByKeycodes) settings)
+		public void InitFuzzy(IStrict strictEngine, ILanguageDataProvider langDataProvider, (int EditDistance, bool Translite, bool ConvertByKeycodes, bool UseShortAlphabet) settings)
 		{
 			throw new NotImplementedException();
 		}

@@ -14,20 +14,20 @@ namespace Fuzzy.Expand
 		#region Private Fields
 		private IStrict _strict;
 		private ILanguageDataProvider _langDataProvider;
-		private (int EditDistance, bool Translite, bool ConvertByKeycodes) _settings;
+		private (int EditDistance, bool Translite, bool ConvertByKeycodes, bool UseShortAlphabet) _settings;
 		private Func<char, IEnumerable<char>>[] _getShortAlphabets;
-		private Func<char, IEnumerable<char>> _getWholeAlphabet;
+		private Func<char, IEnumerable<char>>[] _getWholeAlphabet;
 		#endregion
 
 		#region Public API
-		public void InitFuzzy(IStrict strictEngine, ILanguageDataProvider langDataProvider, (int EditDistance, bool Translite, bool ConvertByKeycodes) settings)
+		public void InitFuzzy(IStrict strictEngine, ILanguageDataProvider langDataProvider, (int EditDistance, bool Translite, bool ConvertByKeycodes, bool UseShortAlphabet) settings)
 		{
 			_strict = strictEngine;
 			_langDataProvider = langDataProvider;
 			_settings = settings;
 			_getShortAlphabets = new Func<char, IEnumerable<char>>[]
 				{ c => _langDataProvider.PhoneticsNearest[c], c => _langDataProvider.KeyboardNearest[c] };
-			_getWholeAlphabet = c => _langDataProvider.Alphabet;
+			_getWholeAlphabet = new Func<char, IEnumerable<char>>[] { c => _langDataProvider.Alphabet };
 		}
 
 		public string[] GetCorrections(string key)
@@ -85,7 +85,7 @@ namespace Fuzzy.Expand
 
 		private string[] Find(string key)
 		{
-			return Find(key, _getShortAlphabets);
+			return Find(key, _settings.UseShortAlphabet ? _getShortAlphabets : _getWholeAlphabet);
 		}
 
 		private async Task<(string Correction, (IMorphoSigns[] Signs, string Lemma)[] Info)[]> FindCorrectionsInfoAsync(string key, CancellationToken token)
@@ -96,11 +96,13 @@ namespace Fuzzy.Expand
 		private async Task<string[]> FindAsync(string key, CancellationToken token)
 		{
 			return await Task.Factory.StartNew(() =>
-				Find(key, c => token.IsCancellationRequested ? new HashSet<char>() : _langDataProvider.PhoneticsNearest[c],
-					c => token.IsCancellationRequested ? new HashSet<char>() : _langDataProvider.KeyboardNearest[c]), token);
+				Find(key, _settings.UseShortAlphabet ?
+					new Func<char, IEnumerable<char>>[] {c => token.IsCancellationRequested ? new HashSet<char>() : _langDataProvider.PhoneticsNearest[c],
+						c => token.IsCancellationRequested ? new HashSet<char>() : _langDataProvider.KeyboardNearest[c] } :
+						new Func<char, IEnumerable<char>>[] { c => token.IsCancellationRequested ? new char[0] : _langDataProvider.Alphabet }), token);
 		}
 
-		private string[] Find(string key, params Func<char, IEnumerable<char>>[] getAlphabets)
+		private string[] Find(string key, Func<char, IEnumerable<char>>[] getAlphabets)
 		{
 			var corrections = new[] { key };
 			if (_settings.Translite)
