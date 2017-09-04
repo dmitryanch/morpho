@@ -9,27 +9,32 @@ namespace Fuzzy.NGramm
 {
 	public class Engine : IFuzzy
 	{
-		public KeyValuePair<string, IMorphoSigns[]>[] Get(string key)
+		public (string Correction, (IMorphoSigns[] Signs, string Lemma)[] Info)[] Get(string key)
 		{
 			throw new NotImplementedException();
 		}
 
-		public KeyValuePair<string, IMorphoSigns[]>[] Get(string key, bool exactEnough)
+		public (string Correction, (IMorphoSigns[] Signs, string Lemma)[] Info)[] Get(string key, bool exactEnough)
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<KeyValuePair<string, IMorphoSigns[]>[]> GetAsync(string key, CancellationToken token)
+		public Task<(string Correction, (IMorphoSigns[] Signs, string Lemma)[] Info)[]> GetAsync(string key, CancellationToken token)
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task<KeyValuePair<string, IMorphoSigns[]>[]> GetAsync(string key, bool exactEnough, CancellationToken token)
+		public Task<(string Correction, (IMorphoSigns[] Signs, string Lemma)[] Info)[]> GetAsync(string key, bool exactEnough, CancellationToken token)
 		{
 			throw new NotImplementedException();
 		}
 
-		public void InitFuzzy(IStrict strictEngine)
+		public string[] GetCorrections(string key)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void InitFuzzy(IStrict strictEngine, ILanguageDataProvider langDataProvider, (int EditDistance, bool Translite, bool ConvertByKeycodes) settings)
 		{
 			throw new NotImplementedException();
 		}

@@ -7,9 +7,9 @@ namespace Core.Ext
 {
     public static class LangSpecExt
     {
-		public static byte[] GetKeyCodes(this string word, Dictionary<char, byte> codeKeys)
+		public static byte[] GetKeyCodes(this string word, Dictionary<char, byte> keycodes)
 		{
-			return word.ToLower().Select(ch => codeKeys[ch]).ToArray();
+			return word.ToLower().Select(ch => keycodes[ch]).ToArray();
 		}
 	}
 }

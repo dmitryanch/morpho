@@ -1,4 +1,5 @@
-﻿using Core.Interfaces;
+﻿using Core.Ext;
+using Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,21 +10,7 @@ namespace Strict.Tools
 {
 	internal static class Tools
 	{
-		#region Extension Methods
-		public static ulong ComputeHash<T>(this T[] array)
-		{
-			if (array == null) return 0;
-			unchecked
-			{
-				ulong hash = 17;
-				for (var i = 0; i < array.Length; i++)
-					hash = 31 * hash + (ulong)array[i].GetHashCode();
-				return hash;
-			}
-		}
-		#endregion
-
-		public static ((IMorphoSigns[] Signs, string Lemma)[][] Lemmas, byte[][] KeyCodes, MinPerfectHashFunction Mphf)
+		public static (byte[][] Keys, (IMorphoSigns[] Signs, string Lemma)[][] Lemmas, byte[][] KeyCodes, MinPerfectHashFunction Mphf)
 			ParseData(Dictionary<string, ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes)> dict)
 		{
 			var keys = dict.Keys.ToArray();
@@ -54,15 +41,17 @@ namespace Strict.Tools
 			var mphf = MinPerfectHashFunction.Create(keygen, 1);
 			var Lemmas = new(IMorphoSigns[] Signs, string Lemma)[mphf.N][];
 			var keyCodes = new byte[mphf.N][];
+			var keyBytes = new byte[mphf.N][];
 			foreach (var pair in dict)
 			{
 				var wordBytes = Encoding.UTF8.GetBytes(pair.Key);
 				var index = (int)mphf.Search(wordBytes);
 				var wordEntries = pair.Value.Words.Select(w => (Signs: signs[w.Signs.ComputeHash()], Lemma: lemmas[w.Lemma])).ToArray();
+				keyBytes[index] = wordBytes;
 				Lemmas[index] = wordEntries;
 				keyCodes[index] = bytes[pair.Value.Codes.ComputeHash()];
 			}
-			return (Lemmas: Lemmas, KeyCodes: keyCodes, Mphf: mphf);
+			return (Keys: keyBytes, Lemmas: Lemmas, KeyCodes: keyCodes, Mphf: mphf);
 		}
 	}
 }

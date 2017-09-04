@@ -1,4 +1,5 @@
 ﻿using Core.Interfaces;
+using Core.Keyboard;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Utils.Metrics
 
 		public EditDistance(ILanguageDataProvider[] languages)
 		{
-			_phoneticGroups = languages.Select(l => l.PhoneticsGroups).ToArray();
+			_phoneticGroups = languages.Select(l => l.PhoneticsNearest).ToArray();
 		}
 
 		public int ByDamerauLevenshtein((string Text, byte[] Codes) source, (string Text, byte[] Codes) target, bool fullWord, bool translation)
@@ -64,7 +65,7 @@ namespace Utils.Metrics
 			if (source.Codes[sourcePosition] != 0 && source.Codes[sourcePosition] == search.Codes[searchPosition])
 				return 0;
 			int resultWeight = 0;
-			if (!QwertyKeyboardInfo.DistanceCodeKey.TryGetValue(source.Codes[sourcePosition], out HashSet<int> nearKeys))
+			if (!Qwerty.DistanceCodeKey.TryGetValue(source.Codes[sourcePosition], out HashSet<byte> nearKeys))
 				resultWeight = 2;
 			else
 				resultWeight = nearKeys.Contains(search.Codes[searchPosition]) ? 1 : 2;
