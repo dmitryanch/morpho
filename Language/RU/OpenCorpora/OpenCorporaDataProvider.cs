@@ -74,7 +74,7 @@ namespace RU.OpenCorpora
 				{
 					var row = sr.ReadLine();
 					var strings = row.Split(new[] { ' ', ',', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-					if(getLemma)
+					if (getLemma)
 					{
 						lemma = strings[0];
 					}
@@ -131,13 +131,13 @@ namespace RU.OpenCorpora
 					if (word.Lemma == null)
 					{
 						word = (Signs: new[] { morphoSigns }, Lemma: lemma);
-						entry.Words.Add(word);
+						entry.Words = entry.Words.Add(word);
 						containsSigns = true;
 					}
 					var signs = word.Signs;
 					if (!containsSigns && !signs.Contains(morphoSigns))
 					{
-						signs.Add(morphoSigns);
+						signs = signs.Add(morphoSigns);
 					}
 				}
 				else

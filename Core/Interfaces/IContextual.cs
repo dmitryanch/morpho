@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Core.Interfaces
+﻿namespace Core.Interfaces
 {
-    public interface IContextual : IStrict
+	public interface IContextual : IStrict
     {
 		
 	}

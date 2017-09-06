@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Core.Interfaces
 {
-    public interface ILanguageDataProvider
+	public interface ILanguageDataProvider
     {
 		Dictionary<char, HashSet<char>> PhoneticsNearest { get; }
 		Dictionary<char, HashSet<char>> KeyboardNearest { get; }

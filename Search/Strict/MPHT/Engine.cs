@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using Core.Interfaces;
 using Utils.MPHF;
@@ -46,6 +45,11 @@ namespace Search.Strict.MPHT
 		{
 			var index = GetIndex(key);
 			return index > -1;
+		}
+
+		public string[] GetKeys()
+		{
+			return _keys.Select(b => Encoding.UTF8.GetString(b)).ToArray();
 		}
 		#endregion
 

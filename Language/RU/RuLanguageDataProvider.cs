@@ -1,9 +1,7 @@
 ﻿using Core.Interfaces;
 using Core.Keyboard;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace RU
 {
@@ -80,39 +78,39 @@ namespace RU
 		private static Dictionary<string, string[]> _translitToEn = new Dictionary<string, string[]>
 		{
 			{ "ий", new [] { "y", "iy"} },
-			{ "а", new []{"a" } },
-			{ "б", new []{"b", "6" } },
-			{ "в", new []{"v", "b", "8" } },
-			{ "г", new []{"g", "r" } },
-			{ "д", new []{"d", "g" }},
-			{ "е", new []{"e", "3" }},
-			{ "ё", new []{"yo", "jo" }},
-			{ "ж", new []{"zh" }},
-			{ "з", new []{"z", "3" }},
-			{ "и", new []{"i", "u" }},
-			{ "й", new []{"i", "" }},
-			{ "к", new []{"k" }},
-			{ "л", new []{"l" }},
-			{ "м", new []{"m" }},
-			{ "н", new []{"n", "h" }},
-			{ "о", new []{"о", "o", "0" }},
-			{ "п", new []{"p", "n" }},
-			{ "р", new []{"r", "p" }},
-			{ "с", new []{"s", "c" }},
-			{ "т", new []{"t", "m" }},
-			{ "у", new []{"u", "y" }},
-			{ "ф", new []{"f" }},
-			{ "х", new []{"x", "h" }},
-			{ "ц", new []{"c", "ts" }},
-			{ "ч", new []{"ch", "4" }},
-			{ "ш", new []{"sh", "w" }},
-			{ "щ", new []{"shh", "sh'", "sh", "w"} },
-			{ "ъ", new []{"" }},
-			{ "ы", new []{"y" }},
-			{ "ь", new []{"'", "`" }},
-			{ "э", new []{"e", "je" }},
-			{ "ю", new []{"yu", "ju" }},
-			{ "я", new []{"ya", "ja", "q" }},
+			{ "а", new [] { "a" } },
+			{ "б", new [] { "b", "6" } },
+			{ "в", new [] { "v", "b", "8" } },
+			{ "г", new [] { "g", "r" } },
+			{ "д", new [] { "d", "g" } },
+			{ "е", new [] { "e", "3" } },
+			{ "ё", new [] { "yo", "jo" } },
+			{ "ж", new [] { "zh" } },
+			{ "з", new [] { "z", "3" } },
+			{ "и", new [] { "i", "u" } },
+			{ "й", new [] { "i", "" } },
+			{ "к", new [] { "k" } },
+			{ "л", new [] { "l" } },
+			{ "м", new [] { "m" } },
+			{ "н", new [] { "n", "h" } },
+			{ "о", new [] { "о", "o", "0" } },
+			{ "п", new [] { "p", "n" } },
+			{ "р", new [] { "r", "p" } },
+			{ "с", new [] { "s", "c" } },
+			{ "т", new [] { "t", "m" } },
+			{ "у", new [] { "u", "y" } },
+			{ "ф", new [] { "f" } },
+			{ "х", new [] { "x", "h" } },
+			{ "ц", new [] { "c", "ts" } },
+			{ "ч", new [] { "ch", "4" } },
+			{ "ш", new [] { "sh", "w" } },
+			{ "щ", new [] { "shh", "sh'", "sh", "w"} },
+			{ "ъ", new [] { "" } },
+			{ "ы", new [] { "y" } },
+			{ "ь", new [] { "'", "`" } },
+			{ "э", new [] { "e", "je" } },
+			{ "ю", new [] { "yu", "ju" } },
+			{ "я", new [] { "ya", "ja", "q" } },
 		}.OrderByDescending(k => k.Key.Length).ToDictionary(k => k.Key, k => k.Value);
 		private static char[] _alphabet = _translitToEn.Keys.Where(k => k.Length == 1).Select(s => s[0]).ToArray();
 		private static Dictionary<string, string[]> _translitFromEn;

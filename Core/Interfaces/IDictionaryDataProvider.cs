@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Core.Interfaces
 {
-    public interface IDictionaryDataProvider
+	public interface IDictionaryDataProvider
     {
 		void Init(ILanguageDataProvider langDataProvider);
 		Dictionary<string, ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes)> Read();

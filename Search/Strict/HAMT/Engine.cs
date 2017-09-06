@@ -1,6 +1,5 @@
 ﻿using Core.Interfaces;
 using Strict.Tools;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -51,6 +50,11 @@ namespace Search.Strict.HAMT
 		public bool Contains(string key)
 		{
 			return _hamt.Get(key) != null;
+		}
+
+		public string[] GetKeys()
+		{
+			return _hamt.GetKeys().ToArray();
 		}
 		#endregion
 	}

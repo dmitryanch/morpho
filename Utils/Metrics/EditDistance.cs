@@ -3,11 +3,10 @@ using Core.Keyboard;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Utils.Metrics
 {
-    public class EditDistance
+	public class EditDistance
     {
 		private Dictionary<char, HashSet<char>>[] _phoneticGroups;
 
