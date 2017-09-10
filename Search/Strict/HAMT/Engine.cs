@@ -5,21 +5,35 @@ using System.Linq;
 using System.Text;
 using Utils.MPHF;
 using Utils.HAMT;
+using Core.Classes;
+using System.Threading.Tasks;
 
 namespace Search.Strict.HAMT
 {
 	public sealed class Engine : IStrict
 	{
 		#region Private Fields
+		private IDictionaryDataProvider _corpora;
 		private MinPerfectHashFunction _mphf;
 		private byte[][] _keyCodes;
-		private static readonly Hamt<string, (IMorphoSigns[] Signs, string Lemma)[]> _hamt =
-			new Hamt<string, (IMorphoSigns[] Signs, string Lemma)[]>();
+		private static readonly Hamt<string, WordInfo[]> _hamt =
+			new Hamt<string, WordInfo[]>();
+		#endregion
+
+		#region Constructor
+		public Engine(IDictionaryDataProvider corpora)
+		{
+			_corpora = corpora;
+		}
 		#endregion
 
 		#region Public API
-		public void Init(Dictionary<string, ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes)> dict)
+		public string LanguageTitle => _corpora.LanguageTitle;
+
+		public async Task Init()
 		{
+			await _corpora.Init();
+			var dict = await _corpora.GetData();
 			var arrays = Tools.ParseData(dict);
 			_mphf = arrays.Mphf;
 			_keyCodes = arrays.KeyCodes;
@@ -37,14 +51,14 @@ namespace Search.Strict.HAMT
 			return _hamt.Get(key)?.Value.Select(w => w.Lemma).ToArray();
 		}
 
-		public (IMorphoSigns[] Signs, string Lemma)[] Get(string key)
+		public WordInfo[] Get(string key)
 		{
 			return _hamt.Get(key)?.Value;
 		}
 
-		public ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes) GetWithCodes(string key)
+		public WordEntry GetWithCodes(string key)
 		{
-			return (Words: _hamt.Get(key)?.Value, Codes: _keyCodes[(int)_mphf.Search(Encoding.UTF8.GetBytes(key))]);
+			return new WordEntry { Words = _hamt.Get(key)?.Value, Codes = _keyCodes[(int)_mphf.Search(Encoding.UTF8.GetBytes(key))] };
 		}
 
 		public bool Contains(string key)

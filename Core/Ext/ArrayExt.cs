@@ -21,6 +21,11 @@ namespace Core.Ext
 			return (array ?? Enumerable.Empty<T>()).Concat(Enumerable.Repeat(newItem, 1)).ToArray();
 		}
 
+		public static T[] AddDistinct<T>(this T[] array, T newItem)
+		{
+			return (array ?? Enumerable.Empty<T>()).Concat(Enumerable.Repeat(newItem, 1)).Distinct().ToArray();
+		}
+
 		public static bool Equals<T>(T[] arrayA, T[] arrayB)
 		{
 			if(arrayA.Length != arrayB.Length)

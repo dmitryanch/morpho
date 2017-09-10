@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <StartupObject></StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\Language\EN\EN.csproj" />
+    <ProjectReference Include="..\..\Language\RU\RU.csproj" />
+    <ProjectReference Include="..\..\MorphoProcessor\Morpho.csproj" />
+    <ProjectReference Include="..\..\Search\Fuzzy\Fuzzy.csproj" />
+    <ProjectReference Include="..\..\Search\Strict\Strict.csproj" />
+  </ItemGroup>
+
+</Project>

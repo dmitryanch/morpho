@@ -1,4 +1,5 @@
-﻿using Core.Ext;
+﻿using Core.Classes;
+using Core.Ext;
 using Core.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,8 @@ namespace Strict.Tools
 {
 	internal static class Tools
 	{
-		public static (byte[][] Keys, (IMorphoSigns[] Signs, string Lemma)[][] Lemmas, byte[][] KeyCodes, MinPerfectHashFunction Mphf)
-			ParseData(Dictionary<string, ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes)> dict)
+		public static (byte[][] Keys, WordInfo[][] Lemmas, byte[][] KeyCodes, MinPerfectHashFunction Mphf)
+			ParseData(Dictionary<string, WordEntry> dict)
 		{
 			var keys = dict.Keys.ToArray();
 			var signs = new Dictionary<ulong, IMorphoSigns[]>();
@@ -38,14 +39,14 @@ namespace Strict.Tools
 			}
 			var keygen = new KeyGenerator(keys);
 			var mphf = MinPerfectHashFunction.Create(keygen, 1);
-			var Lemmas = new(IMorphoSigns[] Signs, string Lemma)[mphf.N][];
+			var Lemmas = new WordInfo[mphf.N][];
 			var keyCodes = new byte[mphf.N][];
 			var keyBytes = new byte[mphf.N][];
 			foreach (var pair in dict)
 			{
 				var wordBytes = Encoding.UTF8.GetBytes(pair.Key);
 				var index = (int)mphf.Search(wordBytes);
-				var wordEntries = pair.Value.Words.Select(w => (Signs: signs[w.Signs.ComputeHash()], Lemma: lemmas[w.Lemma])).ToArray();
+				var wordEntries = pair.Value.Words.Select(w => new WordInfo { Signs = signs[w.Signs.ComputeHash()], Lemma = lemmas[w.Lemma] }).ToArray();
 				keyBytes[index] = wordBytes;
 				Lemmas[index] = wordEntries;
 				keyCodes[index] = bytes[pair.Value.Codes.ComputeHash()];

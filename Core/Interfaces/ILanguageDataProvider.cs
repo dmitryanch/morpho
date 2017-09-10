@@ -1,15 +1,11 @@
-﻿using System.Collections.Generic;
-
-namespace Core.Interfaces
+﻿namespace Core.Interfaces
 {
 	public interface ILanguageDataProvider
-    {
-		Dictionary<char, HashSet<char>> PhoneticsNearest { get; }
-		Dictionary<char, HashSet<char>> KeyboardNearest { get; }
-		Dictionary<char, byte> KeyCodes { get; }
-		Dictionary<byte, char[]> CharsByKeycode { get; }
-		Dictionary<string, string[]> TranslitFromEn { get; }
-		Dictionary<string, string[]> TranslitToEn { get; }
-		char[] Alphabet { get; }
+	{
+		ILanguageDataProvider Add(ILanguageData language);
+		ILanguageData Get(string languageTitle);
+		ILanguageData[] GetAll();
+		ILanguageData[] GetAllExcept(params ILanguageData[] language);
+		ILanguageData[] GetAllExcept(params string[] language);
 	}
 }

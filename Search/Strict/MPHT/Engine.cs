@@ -5,40 +5,53 @@ using Utils.MPHF;
 using System.Linq;
 using Strict.Tools;
 using Core.Ext;
+using Core.Classes;
+using System.Threading.Tasks;
 
 namespace Search.Strict.MPHT
 {
 	public sealed class Engine : IStrict
 	{
 		#region Private Fields
+		private IDictionaryDataProvider _corpora;
 		private MinPerfectHashFunction _mphf;
 		private byte[][] _keyCodes;
-		private (IMorphoSigns[] Signs, string Lemma)[][] _lemmas;
+		private WordInfo[][] _lemmas;
 		private byte[][] _keys;
 		#endregion
 
+		#region Constructor
+		public Engine(IDictionaryDataProvider corpora)
+		{
+			_corpora = corpora;
+		}
+		#endregion
+
 		#region Public API
+		public string LanguageTitle => _corpora.LanguageTitle;
+
 		public string[] Lemmatize(string key)
 		{
 			var index = GetIndex(key);
 			return index > -1 ? _lemmas[index].Select(l => l.Lemma).ToArray() : null;
 		}
 
-		public (IMorphoSigns[] Signs, string Lemma)[] Get(string key)
+		public WordInfo[] Get(string key)
 		{
 			var index = GetIndex(key);
 			return index > -1 ? _lemmas[index] : null;
 		}
 
-		public ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes) GetWithCodes(string key)
+		public WordEntry GetWithCodes(string key)
 		{
 			var index = GetIndex(key);
-			return index > -1 ? (Words: _lemmas[index], Codes: _keyCodes[index]) : default(((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes));
+			return index > -1 ? new WordEntry { Words = _lemmas[index], Codes = _keyCodes[index] } : null;
 		}
 
-		public void Init(Dictionary<string, ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes)> dict)
+		public async Task Init()
 		{
-			(_keys, _lemmas, _keyCodes, _mphf) = Tools.ParseData(dict);
+			await _corpora.Init();
+			(_keys, _lemmas, _keyCodes, _mphf) = Tools.ParseData(await _corpora.GetData());
 		}
 
 		public bool Contains(string key)
@@ -49,7 +62,7 @@ namespace Search.Strict.MPHT
 
 		public string[] GetKeys()
 		{
-			return _keys.Select(b => Encoding.UTF8.GetString(b)).ToArray();
+			return _keys.Select(b => b != null ? Encoding.UTF8.GetString(b) : null).Where(s => s != null).ToArray();
 		}
 		#endregion
 
@@ -63,7 +76,7 @@ namespace Search.Strict.MPHT
 		private bool Contains(uint index, byte[] key)
 		{
 			var word = _keys[index];
-			return ArrayExt.Equals(word, key);
+			return word != null && ArrayExt.Equals(word, key);
 		}
 		#endregion
 	}

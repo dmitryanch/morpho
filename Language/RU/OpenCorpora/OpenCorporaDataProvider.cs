@@ -1,25 +1,35 @@
-﻿using Core.Ext;
+﻿using Core.Classes;
+using Core.Ext;
 using Core.Interfaces;
 using Core.Lang.RU;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace RU.OpenCorpora
 {
 	public class OpenCorporaDataProvider : IDictionaryDataProvider, IDisposable
 	{
+		#region Private Fields
 		private const string OPENCORPORA_DICTIONARY_FILEPATH = "C:/Users/dexp/Documents/Semantix/dict.opcorpora.txt/dict.txt";
+		private const string LANGUAGE_TITLE = "RU";
 		private readonly Dictionary<string, uint> _grammems = new Dictionary<string, uint>();
 		private readonly Dictionary<uint, string> _descriptions = new Dictionary<uint, string>();
-		private readonly Dictionary<string, ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes)> _dictionary =
-			new Dictionary<string, ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes)>();
-		private ILanguageDataProvider _langDataProvider;
+		private ILanguageData _languageData;
+		#endregion
 
-		public void Init(ILanguageDataProvider langDataProvider)
+		#region Constructor
+		public OpenCorporaDataProvider(ILanguageDataProvider langDataProvider)
 		{
-			_langDataProvider = langDataProvider;
+			_languageData = langDataProvider.Get(LANGUAGE_TITLE);
+		}
+		#endregion
+
+		#region Public API
+		public Task Init()
+		{
 			var i = 1;
 			var keys = OpenCorporaGrammems.StringsDescriptions.Keys.ToList();
 			foreach (var s in keys)
@@ -28,78 +38,93 @@ namespace RU.OpenCorpora
 				_grammems.Add(s, primes);
 				_descriptions.Add(primes, OpenCorporaGrammems.StringsDescriptions[s]);
 			}
+			return Task.CompletedTask;
 		}
 
-		public Dictionary<string, ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes)> Read()
+		public async Task<Dictionary<string, WordEntry>> GetData()
 		{
-			OnReading?.Invoke(this, null);
-			using (var stream = new FileStream(OPENCORPORA_DICTIONARY_FILEPATH, FileMode.Open))
-			using (var sr = new StreamReader(stream))
-			{
-				var article = new List<string[]>();
-				var separators = new[] { ' ', ',', '\t' };
-				while (!sr.EndOfStream)
+			return await Task.Factory.StartNew(() =>
 				{
-					var row = sr.ReadLine();
-					if (row == null) continue;
-					var strings = row.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-
-					if (strings.Length == 1)
+					OnReading?.Invoke(this, null);
+					var dictionary = new Dictionary<string, WordEntry>();
+					using (var stream = new FileStream(OPENCORPORA_DICTIONARY_FILEPATH, FileMode.Open))
+					using (var sr = new StreamReader(stream))
 					{
-						article.Clear();
-						continue;
+						var article = new List<string[]>();
+						var separators = new[] { ' ', ',', '\t' };
+						while (!sr.EndOfStream)
+						{
+							var row = sr.ReadLine();
+							if (row == null) continue;
+							var strings = row.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+							if (strings.Length == 1)
+							{
+								article.Clear();
+								continue;
+							}
+							if (strings.Any())
+							{
+								article.Add(strings);
+								continue;
+							}
+							ProcessArticle(article, ref dictionary);
+						}
 					}
-					if (strings.Any())
-					{
-						article.Add(strings);
-						continue;
-					}
-					ProcessArticle(article);
-				}
-			}
-			OnRead?.Invoke(this, null);
-			return _dictionary;
+					OnRead?.Invoke(this, null);
+					return dictionary;
+				});
 		}
 
-		public bool Test(IStrict searcher)
+		public async Task<bool> Test(IStrict searcher)
 		{
-			OnTesting?.Invoke(this, null);
-			var correct = true;
-			using (var stream = new FileStream(OPENCORPORA_DICTIONARY_FILEPATH, FileMode.Open))
-			using (var sr = new StreamReader(stream))
-			{
-				var getLemma = true;
-				var lemma = (string)null;
-				while (!sr.EndOfStream)
+			return await Task.Factory.StartNew(() =>
 				{
-					var row = sr.ReadLine();
-					var strings = row.Split(new[] { ' ', ',', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-					if (getLemma)
+					OnTesting?.Invoke(this, null);
+					var correct = true;
+					using (var stream = new FileStream(OPENCORPORA_DICTIONARY_FILEPATH, FileMode.Open))
+					using (var sr = new StreamReader(stream))
 					{
-						lemma = strings[0];
+						var getLemma = false;
+						var lemma = (string)null;
+						while (!sr.EndOfStream)
+						{
+							var row = sr.ReadLine();
+							var strings = row.Split(new[] { ' ', ',', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+							if (getLemma)
+							{
+								lemma = strings[0];
+								getLemma = false;
+							}
+							if (strings.Length <= 1)
+							{
+								getLemma = strings.Length == 1;
+								continue;
+							}
+							correct &= StrictlyCheck(searcher, strings, lemma);
+							if (!correct)
+							{
+								break;
+							}
+						}
 					}
-					if (strings.Length == 1)
-					{
-						getLemma = true;
-						continue;
-					}
-					correct &= StrictlyCheck(searcher, strings, lemma);
-					if (!correct)
-					{
-						break;
-					}
-				}
-			}
-			OnTested?.Invoke(this, null);
-			return correct;
+					OnTested?.Invoke(this, null);
+					return correct;
+				});
 		}
 
 		public EventHandler<EventArgs> OnReading { get; set; }
+
 		public EventHandler<EventArgs> OnRead { get; set; }
+
 		public EventHandler<EventArgs> OnTesting { get; set; }
+
 		public EventHandler<EventArgs> OnTested { get; set; }
 
-		private void ProcessArticle(List<string[]> article)
+		public string LanguageTitle => LANGUAGE_TITLE;
+		#endregion
+
+		#region Private Methods
+		private void ProcessArticle(List<string[]> article, ref Dictionary<string, WordEntry> dictionary)
 		{
 			if (article.All(r => r.Contains("Fixd")) && article.Count > 1 &&
 				article.Select(r => r[0]).Distinct().Count() == 1)
@@ -124,29 +149,32 @@ namespace RU.OpenCorpora
 			foreach (var wordForm in article)
 			{
 				var morphoSigns = ParseMorphoSigns(wordForm);
-				if (_dictionary.TryGetValue(wordForm[0], out ((IMorphoSigns[] Signs, string Lemma)[] Words, byte[] Codes) entry))
+				if (dictionary.TryGetValue(wordForm[0], out WordEntry entry))
 				{
 					var word = entry.Words.FirstOrDefault(w => string.Equals(w.Lemma, lemma));
 					var containsSigns = false;
-					if (word.Lemma == null)
+					if (word == null)
 					{
-						word = (Signs: new[] { morphoSigns }, Lemma: lemma);
+						word = new WordInfo { Signs = new[] { morphoSigns }, Lemma = lemma };
 						entry.Words = entry.Words.Add(word);
 						containsSigns = true;
 					}
 					var signs = word.Signs;
 					if (!containsSigns && !signs.Contains(morphoSigns))
 					{
-						signs = signs.Add(morphoSigns);
+						word.Signs = signs.Add(morphoSigns);
 					}
 				}
 				else
 				{
-					entry = (Words: new[] { (Signs: new[] { morphoSigns }, Lemma: lemma) }, Codes: wordForm[0].GetKeyCodes(_langDataProvider.KeyCodes));
-					_dictionary[wordForm[0]] = entry;
+					entry = new WordEntry
+					{
+						Words = new[] { new WordInfo { Signs = new[] { morphoSigns }, Lemma = lemma } },
+						Codes = wordForm[0].GetKeyCodes(_languageData.KeyCodes)
+					};
+					dictionary[wordForm[0].ToLower()] = entry;
 				}
 			}
-
 		}
 
 		private IMorphoSigns ParseMorphoSigns(string[] stringSigns)
@@ -175,6 +203,7 @@ namespace RU.OpenCorpora
 			var processedString = ParseMorphoSigns(wordForm);
 			return !(wordForm.Length > 1 && (!signs.Contains(processedString) && !wordForm.Contains("Fixd")));
 		}
+		#endregion
 
 		#region IDisposable Support
 		private bool disposedValue = false; // Для определения избыточных вызовов
@@ -185,7 +214,6 @@ namespace RU.OpenCorpora
 			{
 				_grammems.Clear();
 				_descriptions.Clear();
-				_dictionary.Clear();
 
 				disposedValue = true;
 			}

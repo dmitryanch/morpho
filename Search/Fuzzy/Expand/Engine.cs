@@ -1,4 +1,5 @@
-﻿using Core.Ext;
+﻿using Core.Classes;
+using Core.Ext;
 using Core.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -6,25 +7,33 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Fuzzy.Expand
+namespace Search.Fuzzy.Expand
 {
 	public sealed class Engine : EngineBase
 	{
 		#region Private Fields
-		private Func<char, IEnumerable<char>>[] _getShortAlphabets;
-		private Func<char, IEnumerable<char>>[] _getWholeAlphabet;
-		private bool _useOptimization;
+		private Func<string, int, IEnumerable<char>>[] _getShortAlphabets;
+		private Func<string, int, IEnumerable<char>>[] _getWholeAlphabet;
+		private bool _useShortAlphabet;
+		#endregion
+
+		#region Constructor
+		public Engine(IStrict strictEngine, ILanguageDataProvider langDataProvider) : base(strictEngine, langDataProvider)
+		{ }
 		#endregion
 
 		#region Public API Override
-		public override void InitFuzzy(IStrict strictEngine, ILanguageDataProvider langDataProvider, object settings)
+		public override async Task Init(object settings)
 		{
-			var config = ((int EditDistance, bool Transliterate, bool ConvertByKeycodes, bool UseOptimization))settings;
-			base.InitFuzzyBase(strictEngine, langDataProvider, (EditDistance: config.EditDistance, Transliterate: config.Transliterate, ConvertByKeycodes: config.ConvertByKeycodes));
-			_useOptimization = config.UseOptimization;
-			_getShortAlphabets = new Func<char, IEnumerable<char>>[]
-				{ c => _langDataProvider.PhoneticsNearest[c], c => _langDataProvider.KeyboardNearest[c] };
-			_getWholeAlphabet = new Func<char, IEnumerable<char>>[] { c => _langDataProvider.Alphabet };
+			var config = ((int EditDistance, bool Transliterate, bool ConvertByKeycodes, bool UseShortAlphabet))settings;
+			await base.InitFuzzyBase((EditDistance: config.EditDistance, Transliterate: config.Transliterate, ConvertByKeycodes: config.ConvertByKeycodes));
+			_useShortAlphabet = config.UseShortAlphabet;
+			_getShortAlphabets = new Func<string, int, IEnumerable<char>>[]
+				{
+					(s, i) => i < s.Length && _defaultLanguage.PhoneticsNearest.TryGetValue(s[i], out HashSet<char> val) ? val : new HashSet<char>(_defaultLanguage.Alphabet),
+					(s, i) => i < s.Length && _defaultLanguage.KeyboardNearest.TryGetValue(s[i], out HashSet<char> val) ? val : new HashSet<char>(_defaultLanguage.Alphabet)
+				};
+			_getWholeAlphabet = new Func<string, int, IEnumerable<char>>[] { (s, i) => _defaultLanguage.Alphabet };
 		}
 		#endregion
 
@@ -34,33 +43,42 @@ namespace Fuzzy.Expand
 			return Find(key).Where(w => _strict.Contains(w)).ToArray();
 		}
 
-		internal protected override (string Correction, (IMorphoSigns[] Signs, string Lemma)[] Info)[] FindCorrectionsInfo(string key)
+		internal protected override WordCorrection[] FindCorrectionsInfo(string key)
 		{
-			return Find(key).Select(w => (Correction: w, Info: _strict.Get(w))).Where(c => c.Info != null).ToArray();
+			return Find(key).Select(w => new WordCorrection { Correction = w, Info = _strict.Get(w) }).Where(c => c.Info != null).ToArray();
 		}
 
-		internal protected override async Task<(string Correction, (IMorphoSigns[] Signs, string Lemma)[] Info)[]> FindCorrectionsInfoAsync(string key, CancellationToken token)
+		internal protected override async Task<WordCorrection[]> FindCorrectionsInfoAsync(string key, CancellationToken token)
 		{
-			return (await FindAsync(key, token)).Select(w => (Correction: w, Info: _strict.Get(w))).Where(c => c.Info != null).ToArray();
+			return (await FindAsync(key, token)).Select(w => new WordCorrection { Correction = w, Info = _strict.Get(w) }).Where(c => c.Info != null).ToArray();
 		}
 		#endregion Override Methods
 
 		#region Private Methods
 		private string[] Find(string key)
 		{
-			return Find(key, _useOptimization ? _getShortAlphabets : _getWholeAlphabet);
+			return Find(key, _useShortAlphabet ? _getShortAlphabets : _getWholeAlphabet);
 		}
 
 		private async Task<string[]> FindAsync(string key, CancellationToken token)
 		{
 			return await Task.Factory.StartNew(() =>
-				Find(key, _useOptimization
-					? new Func<char, IEnumerable<char>>[] {c => token.IsCancellationRequested ? new HashSet<char>() : _langDataProvider.PhoneticsNearest[c],
-						c => token.IsCancellationRequested ? new HashSet<char>() : _langDataProvider.KeyboardNearest[c] }
-					: new Func<char, IEnumerable<char>>[] { c => token.IsCancellationRequested ? new char[0] : _langDataProvider.Alphabet }), token);
+				Find(key, _useShortAlphabet
+					? new Func<string, int, IEnumerable<char>>[]
+					{
+						(s, i) => token.IsCancellationRequested 
+							? new HashSet<char>() 
+							: i < s.Length && _defaultLanguage.PhoneticsNearest.TryGetValue(s[i], out HashSet<char> val) 
+								? val : new HashSet<char>(_defaultLanguage.Alphabet),
+						(s, i) => token.IsCancellationRequested 
+							? new HashSet<char>() 
+							: i < s.Length && _defaultLanguage.KeyboardNearest.TryGetValue(s[i], out HashSet<char> val) 
+								? val : new HashSet<char>(_defaultLanguage.Alphabet)
+					}
+					: new Func<string, int, IEnumerable<char>>[] { (s, i) => token.IsCancellationRequested ? new char[0] : _defaultLanguage.Alphabet }), token);
 		}
 
-		private string[] Find(string key, Func<char, IEnumerable<char>>[] getAlphabets)
+		private string[] Find(string key, Func<string, int, IEnumerable<char>>[] getAlphabets)
 		{
 			var corrections = ExpandQuery(key);
 			var extra = new string[corrections.Length];
@@ -79,12 +97,12 @@ namespace Fuzzy.Expand
 		/// </summary>
 		/// <param name="key">The word string</param>
 		/// <returns></returns>
-		private string[] FindByQueryExpand(string key, Func<char, IEnumerable<char>>[] getAlphabets)
+		private string[] FindByQueryExpand(string key, Func<string, int, IEnumerable<char>>[] getAlphabets)
 		{
 			var result = new string[0];
 			for (var i = 0; i < key.Length + 1; i++)
 			{
-				var alphabet = getAlphabets.SelectMany(getAlphabet => getAlphabet(key[i])).Distinct().ToArray();
+				var alphabet = getAlphabets.SelectMany(getAlphabet => getAlphabet(key, i)).Distinct().ToArray();
 				if (!alphabet.Any())
 				{
 					// Cancellation Requested!
@@ -93,7 +111,7 @@ namespace Fuzzy.Expand
 				// insertions ((key.Length + 1) * Alphabet.Length worst)
 				foreach (var s in alphabet)
 				{
-					result = result.Add(key.Insert(i, s.ToString()));
+					result = result.AddDistinct(key.Insert(i, s.ToString()));
 				}
 				if (i == key.Length)
 				{
@@ -102,14 +120,14 @@ namespace Fuzzy.Expand
 
 				var begining = i > 0 ? key.Substring(0, i) : null;
 				// transpositions (key.Length worst)
-				if (key[i] != key[i + 1])
+				if (i + 1 < key.Length && key[i] != key[i + 1])
 				{
 					var transpositionEnding = i + 2 < key.Length ? key.Substring(i + 2) : null;
-					result = result.Add($"{begining ?? string.Empty}{key[i + 1]}{key[i]}{transpositionEnding ?? string.Empty}");
+					result = result.AddDistinct($"{begining ?? string.Empty}{key[i + 1]}{key[i]}{transpositionEnding ?? string.Empty}");
 				}
 
 				// removals (key.Length worst)
-				result = result.Add(key.Remove(i, 1));
+				result = result.AddDistinct(key.Remove(i, 1));
 
 				// replacements (key.Length * Alphabet.Length worst)
 				var replacementEnding = i + 1 < key.Length ? key.Substring(i + 1) : null;
@@ -119,7 +137,7 @@ namespace Fuzzy.Expand
 					{
 						continue;
 					}
-					result = result.Add($"{begining ?? string.Empty}{s}{replacementEnding ?? string.Empty}");
+					result = result.AddDistinct($"{begining ?? string.Empty}{s}{replacementEnding ?? string.Empty}");
 				}
 			}
 			return result;

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace RU
 {
-	public class RuLanguageDataProvider : ILanguageDataProvider
+	public class RuLanguageData : ILanguageData
 	{
 		#region Private Static Fields
 		private static string[] _phoneticHeaps = { "аоуэыиеёя", "сзц", "тсц", "тд", "шжщч", "лйр", "вф", "бп", "гкх", "мн" };
@@ -73,6 +73,8 @@ namespace RU
 			{ '_' , 189 },
 			{ '+' , 187 },
 			{ ',' , 191 },
+			{ '\'' , 222  },
+			{ (char)8217 , 222  },
 		};
 		private static Dictionary<byte, char[]> _charsByKeycode;
 		private static Dictionary<string, string[]> _translitToEn = new Dictionary<string, string[]>
@@ -111,6 +113,9 @@ namespace RU
 			{ "э", new [] { "e", "je" } },
 			{ "ю", new [] { "yu", "ju" } },
 			{ "я", new [] { "ya", "ja", "q" } },
+			{ "-", new [] { "-" } },
+			{ "\'", new [] { "\'", ((char)8217).ToString() } },
+			{ ((char)8217).ToString(), new [] { "\'", ((char)8217).ToString() } }
 		}.OrderByDescending(k => k.Key.Length).ToDictionary(k => k.Key, k => k.Value);
 		private static char[] _alphabet = _translitToEn.Keys.Where(k => k.Length == 1).Select(s => s[0]).ToArray();
 		private static Dictionary<string, string[]> _translitFromEn;
@@ -141,7 +146,7 @@ namespace RU
 					_keyboardGroups = new Dictionary<char, HashSet<char>>();
 					foreach (var keycode in _keycodes)
 					{
-						var nearestKeyCodes = Qwerty.DistanceCodeKey[keycode.Value];
+						var nearestKeyCodes = Qwerty.NearestByKeycode[keycode.Value];
 						_keyboardGroups.Add(keycode.Key, new HashSet<char>(_keycodes
 							.Where(k => nearestKeyCodes.Contains(k.Value)).Select(k => k.Key)));
 					}
@@ -176,5 +181,7 @@ namespace RU
 			}
 		}
 		public char[] Alphabet => _alphabet;
+
+		public string Title => "RU";
 	}
 }

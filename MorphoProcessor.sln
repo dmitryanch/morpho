@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorphoProcessor", "MorphoProcessor\MorphoProcessor.csproj", "{2398B701-E7E1-4997-8E9F-BC315CA829D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Morpho", "MorphoProcessor\Morpho.csproj", "{2398B701-E7E1-4997-8E9F-BC315CA829D9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{280D852C-B716-4D47-8F7C-4DAC4FEB34DE} = {280D852C-B716-4D47-8F7C-4DAC4FEB34DE}
 		{900C1073-378C-4617-9713-5891055093FA} = {900C1073-378C-4617-9713-5891055093FA}
@@ -27,7 +27,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utils", "Utils\Utils.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contextual", "Search\Contextual\Contextual.csproj", "{793E490F-BD0F-42C3-8C6C-45D94156B307}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EN", "Language\EN\EN.csproj", "{E7E957F3-7B27-4DAE-81ED-CBF2E29F0207}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EN", "Language\EN\EN.csproj", "{E7E957F3-7B27-4DAE-81ED-CBF2E29F0207}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{318E9541-C579-4374-BED3-AC9BB0048C6F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Morpho.Test", "Test\Morpho.Test\Morpho.Test.csproj", "{AEA90D1B-320D-4D97-9621-939544173ED7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +71,10 @@ Global
 		{E7E957F3-7B27-4DAE-81ED-CBF2E29F0207}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7E957F3-7B27-4DAE-81ED-CBF2E29F0207}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7E957F3-7B27-4DAE-81ED-CBF2E29F0207}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEA90D1B-320D-4D97-9621-939544173ED7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEA90D1B-320D-4D97-9621-939544173ED7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEA90D1B-320D-4D97-9621-939544173ED7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEA90D1B-320D-4D97-9621-939544173ED7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -77,5 +85,9 @@ Global
 		{280D852C-B716-4D47-8F7C-4DAC4FEB34DE} = {E9991009-CC4A-4522-AAD9-C2C588F898C9}
 		{793E490F-BD0F-42C3-8C6C-45D94156B307} = {7BDD5934-1689-447B-B111-96ECEE64A59A}
 		{E7E957F3-7B27-4DAE-81ED-CBF2E29F0207} = {E9991009-CC4A-4522-AAD9-C2C588F898C9}
+		{AEA90D1B-320D-4D97-9621-939544173ED7} = {318E9541-C579-4374-BED3-AC9BB0048C6F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4A290A60-D6B6-4A9B-96FC-3BED296EFDF6}
 	EndGlobalSection
 EndGlobal

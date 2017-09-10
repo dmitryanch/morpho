@@ -4,7 +4,7 @@ namespace Core.Keyboard
 {
 	public class Qwerty
 	{
-		public static Dictionary<byte, HashSet<byte>> DistanceCodeKey = new Dictionary<byte, HashSet<byte>>
+		public static Dictionary<byte, HashSet<byte>> NearestByKeycode = new Dictionary<byte, HashSet<byte>>
 		{
             /* '`' */ { 192 , new HashSet<byte>(){ 49, 81 }},
             /* '1' */ { 49 , new HashSet<byte>(){ 50, 87, 81 }},

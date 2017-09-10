@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace EN
 {
-	public class EnLanguageDataProvider : ILanguageDataProvider
+	public class EnLanguageData : ILanguageData
 	{
 		#region Private Static Fields
 		private static string[] _phoneticHeaps = { "aeiouy", "bp", "ckq", "dt", "lr", "mn", "gj", "fpv", "sxz", "csz" };
@@ -112,7 +112,7 @@ namespace EN
 					_keyboardGroups = new Dictionary<char, HashSet<char>>();
 					foreach (var keycode in _keycodes)
 					{
-						var nearestKeyCodes = Qwerty.DistanceCodeKey[keycode.Value];
+						var nearestKeyCodes = Qwerty.NearestByKeycode[keycode.Value];
 						_keyboardGroups.Add(keycode.Key, new HashSet<char>(_keycodes
 							.Where(k => nearestKeyCodes.Contains(k.Value)).Select(k => k.Key)));
 					}
@@ -136,5 +136,7 @@ namespace EN
 		public char[] Alphabet => _alphabet;
 		public Dictionary<string, string[]> TranslitFromEn => null;
 		public Dictionary<string, string[]> TranslitToEn => null;
+
+		public string Title => "EN";
 	}
 }

@@ -276,7 +276,7 @@ namespace Utils.HAMT
 			int currBitGroup = this.hashEvaluate(key);
 			int rootBitIndex = currBitGroup & (root.Nodes.Length - 1);
 
-			LinkerNode linkerNode = root.Nodes[rootBitIndex] as LinkerNode;
+			LinkerNode linkerNode = rootBitIndex < root.Nodes.Length ? root.Nodes[rootBitIndex] as LinkerNode : null;
 
 			if (linkerNode != null)
 			{
@@ -286,6 +286,10 @@ namespace Utils.HAMT
 				{
 					int indexGivenBitIndex = GetElementCountBeforeBitIndex(currBitGroup & maskAmount, linkerNode.Bitmap);
 
+					if (indexGivenBitIndex >= linkerNode.Nodes.Length)
+					{
+						return null;
+					}
 					KeyValueNode keyValueNode = linkerNode.Nodes[indexGivenBitIndex] as KeyValueNode;
 
 					if (keyValueNode != null)
@@ -310,13 +314,18 @@ namespace Utils.HAMT
 			}
 			else
 			{
-				return (KeyValueNode)root.Nodes[rootBitIndex];
+				if (rootBitIndex < root.Nodes.Length)
+				{
+					var node = (KeyValueNode)root.Nodes[rootBitIndex];
+					return node != null && comparer.Equals(node.Key, key) ? node : null;
+				}
+				return null;
 			}
 		}
 
 		public IEnumerable<TKey> GetKeys()
 		{
-			return root.Nodes.SelectMany(GetKeysRecursive);
+			return root.Nodes.SelectMany(GetKeysRecursive).Distinct();
 		}
 
 		private static IEnumerable<TKey> GetKeysRecursive(INode node)
@@ -327,7 +336,7 @@ namespace Utils.HAMT
 			{
 				return new[] { keyValueNode.Key };
 			}
-			return ((LinkerNode)node).Nodes.Where(n => n != null).SelectMany(GetKeysRecursive);
+			return ((LinkerNode)node).Nodes.SelectMany(GetKeysRecursive);
 		}
 
 		public interface INode { }

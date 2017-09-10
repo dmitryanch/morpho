@@ -122,7 +122,7 @@ namespace Core.Lang.RU
 		{
 			var signs = (RuMorphoSigns)obj;
 
-			return !signs.Equals(default(RuMorphoSigns)) && Equals(signs);
+			return signs != default(RuMorphoSigns) && Equals(signs);
 		}
 
 		public override string ToString()
